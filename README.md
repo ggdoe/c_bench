@@ -23,7 +23,7 @@
  - `math.h` : *sqrt()*, define `BENCH_NO_SQRT` to disable and get ***variance*** instead of ***stdev***, or define your own *sqrt* in `__BENCH_SQRT__`
  - `time.h` : *clock_gettime()*
 
-### exemple :
+### example :
 
 ```c
 #define BENCH_LOG_SIZE 256
