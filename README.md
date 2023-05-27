@@ -1,18 +1,49 @@
 # simple benchmark header only
 
-## USAGE :
- - START_BENCH : start the timer
- - LOG_BENCH   : log the time
- - PRINT_BENCH : print mean and std
- - PRINT_BENCH_PERIOD(t) : print every 't' iterations
+## usage : 
+ - `BENCH_START` : start the timer
+ - `BENCH_LOG`   : log the time
+ - `BENCH_MEAN(*m)` : get mean
+ - `BENCH_MEAN_STD(*m,*s)` : get mean and std
+ - `BENCH_LAST` : get last logged time
+ - `BENCH_PRINT` : print mean and std
+ - `BENCH_PRINT_PERIOD(t)` : print every '*t*' iterations
+ - `BENCH_RESET` : reset iteration counter
 
-## CONFIG
- - BENCH_LOG_SIZE  : set the log size (default : 128)
- - BENCH_PRECISION : set the time precision : s, ms, µs, ns (default : ms)
- - BENCH_PRINT_FORMAT : printf format for time (default : "%9.4lf")
- - BENCH_INIT : init variable
- - BENCH_NO_AUTO_INIT : disable init global variable
+*warning, mean and std are incorrect until the array is filled once.*
 
-## DEPENDENCIES
- - math.h : sqrt()
- - time.h : clock_gettime()
+## config :
+ - `BENCH_LOG_SIZE`  : set the log size (default : **128**)
+ - `BENCH_PRECISION` : set the time precision : **s**, **ms**, **µs**, **ns** (default : **ms**)
+ - `BENCH_PRINT_FORMAT` : printf format for time (default : "*%9.4lf*")
+ - `BENCH_INIT` : init variable
+ - `BENCH_NO_AUTO_INIT` : disable init global variable
+
+## dependencies :
+ - `math.h` : *sqrt()*, define `BENCH_NO_SQRT` to disable and get ***variance*** instead of ***stdev***, or define your own *sqrt* in `__BENCH_SQRT__`
+ - `time.h` : *clock_gettime()*
+
+### exemple :
+
+```c
+#define BENCH_LOG_SIZE 256
+#define BENCH_PRECISION µs
+#define BENCH_NO_AUTO_INIT
+#include "bench.h"
+
+void func()
+{
+    BENCH_INIT
+    for(int i = 0; i < nb_repeat; i++){
+        BENCH_START
+        function_to_bench();
+        BENCH_LOG
+        BENCH_PRINT_PERIOD(16)
+    }
+    BENCH_PRINT
+    printf("%lf\n", BENCH_LAST);
+
+    double mean;
+    BENCH_MEAN(&mean);
+}
+```
