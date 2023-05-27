@@ -2,22 +2,23 @@
 
 -- USAGE : 
     `BENCH_START` : start the timer
-    `BENCH_LOG`   : log the time
+    `BENCH_LOG`   : log the time, increase iteration counter
     `BENCH_MEAN(*m)` : get mean
-    `BENCH_MEAN_STD(*m,*s)` : get mean and std
-    `BENCH_LAST` : get last logged time
-    `BENCH_PRINT` : print mean and std
+    `BENCH_MEAN_STD(*m,*s)` : get mean and stdev
+    `BENCH_LAST`  : get last logged time
+    `BENCH_PRINT` : print mean and stdev
     `BENCH_PRINT_PERIOD(t)` : print every 't' iterations
-    `BENCH_RESET` : reset iteration counter
+    `BENCH_PERIOD(t)` : evaluate to true 't' iterations
+    `BENCH_RESET`     : reset iteration counter
 
-    warning, mean and std are incorrect until the array is filled once.
+    warning, mean and stdev are incorrect until the array is filled once.
 
 -- CONFIG :
     `BENCH_LOG_SIZE`  : set the log size (default : 128)
     `BENCH_PRECISION` : set the time precision : s, ms, µs, ns (default : ms)
     `BENCH_PRINT_FORMAT` : printf format for time (default : "%9.4lf")
-    `BENCH_INIT` : init variable
-    `BENCH_NO_AUTO_INIT` : disable init global variable
+    `BENCH_INIT` : init necessary variables
+    `BENCH_NO_AUTO_INIT` : disable init globals variables
 
 -- DEPENDENCIES :
     `math.h` : sqrt(), define `BENCH_NO_SQRT` to disable and get variance 
@@ -36,10 +37,11 @@
 #ifndef BENCH_PRINT_FORMAT
 #define BENCH_PRINT_FORMAT "%9.4lf"
 #endif
-#ifndef BENCH_NO_SQRT
+
+#if !defined(BENCH_NO_SQRT) && !defined(__BENCH_SQRT__)
 #include <math.h>
 #define __BENCH_SQRT__ sqrt
-#else
+#elif !defined(__BENCH_SQRT__)
 #define __BENCH_SQRT__
 #endif
 
@@ -48,6 +50,10 @@
 #define __BENCH_us__    1e6
 #define __BENCH_ns__    1e9
 #define __BENCH_µs__    __BENCH_us__
+
+#define BENCH_INIT  static unsigned long __bench_itetation__ = 0;          \
+                    static double __bench_times__[BENCH_LOG_SIZE];         \
+                    static struct timespec __bench_start__, __bench_end__;
 
 #define BENCH_START clock_gettime(CLOCK_MONOTONIC_RAW, &__bench_start__);
 
@@ -81,13 +87,11 @@
                                "iteration :", __bench_itetation__);          \
                     }
 
-#define BENCH_PRINT_PERIOD(t)   if(__bench_itetation__ % t == 0) BENCH_PRINT;
+#define BENCH_PRINT_PERIOD(t)   if(BENCH_PERIOD(t)) BENCH_PRINT;
+
+#define BENCH_PERIOD(t)         (__bench_itetation__ % t == 0) 
 
 #define BENCH_RESET     __bench_itetation__ = 0;
-
-#define BENCH_INIT  static unsigned long __bench_itetation__ = 0;          \
-                    static double __bench_times__[BENCH_LOG_SIZE];         \
-                    static struct timespec __bench_start__, __bench_end__;
 
 #ifndef BENCH_NO_AUTO_INIT
     BENCH_INIT
